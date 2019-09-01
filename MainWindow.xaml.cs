@@ -12,8 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using System.IO;
+
 using System.IO.Ports;
+using System.Windows.Threading;
 
 namespace SerialCommunication
 {
@@ -23,6 +24,10 @@ namespace SerialCommunication
     public partial class MainWindow : Window
     {
         SerialPort serialPort = new SerialPort();
+        string recievedData;
+
+        FlowDocument mcFlowDoc = new FlowDocument();
+        Paragraph para = new Paragraph();
 
         public MainWindow()
         {
@@ -50,6 +55,7 @@ namespace SerialCommunication
                 serialPort.StopBits = (StopBits)Enum.Parse(typeof(StopBits), cBoxStopBits.Text);
                 serialPort.Parity = (Parity)Enum.Parse(typeof(Parity), cBoxParityBits.Text);
                 serialPort.Open(); // Open port.
+                serialPort.DataReceived += new System.IO.Ports.SerialDataReceivedEventHandler(serialPort_DataRecieved);
 
                 pBar.Value = 100;
             }
@@ -76,6 +82,21 @@ namespace SerialCommunication
             {
                 serialPort.Write(tBoxOutData.Text);
             }
+        }
+
+        private delegate void UpdateUiTextDelegate(string text);
+        private void serialPort_DataRecieved(object sender, System.IO.Ports.SerialDataReceivedEventArgs e)
+        {
+            // Collecting the characters received to our 'buffer' (string).
+            recievedData = serialPort.ReadExisting();
+
+            // Delegate a function to display the received data.
+            Dispatcher.Invoke(DispatcherPriority.Send, new UpdateUiTextDelegate(DataWrited), recievedData);
+        }
+
+        private void DataWrited(string text)
+        {
+            tBoxInData.Text += text;
         }
     }
 }
