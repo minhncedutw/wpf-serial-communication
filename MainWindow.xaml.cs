@@ -23,6 +23,7 @@ namespace SerialCommunication
     public partial class MainWindow : Window
     {
         SerialPort serialPort = new SerialPort();
+
         public MainWindow()
         {
             InitializeComponent();
